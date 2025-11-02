@@ -1,16 +1,21 @@
 // app/components/UploadForm.tsx
-'use client'; // WAJIB, karena ini form interaktif
+'use client'; 
 
 import { useState } from 'react';
+// 1. IMPORT 'useRouter'
+import { useRouter } from 'next/navigation';
 
 export default function UploadForm() {
-  const [language, setLanguage] = useState('javascript'); // Bahasa default
+  // 2. INISIALISASI ROUTER
+  const router = useRouter(); 
+
+  const [language, setLanguage] = useState('javascript');
   const [code, setCode] = useState('');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Mencegah reload halaman
+    e.preventDefault(); 
     setMessage('Mengupload...');
 
     try {
@@ -26,12 +31,13 @@ export default function UploadForm() {
 
       if (response.ok) {
         setMessage(`Upload berhasil! (ID: ${data.id})`);
-        // Kosongkan form setelah berhasil
         setTitle('');
         setLanguage('javascript');
         setCode('');
 
-        // TODO: Idealnya, kita harus memicu refresh data di halaman utama
+        // 3. INI KUNCINYA!
+        // Memerintahkan Next.js untuk mengambil data ulang
+        router.refresh(); 
 
       } else {
         setMessage(`Gagal: ${data.error || 'Unknown error'}`);

@@ -1,14 +1,11 @@
 // app/api/snippets/route.ts
 import { NextResponse } from 'next/server';
+import { sql } from '@vercel/postgres'; // <-- IMPORT driver database
 
-// Ini adalah 'backend' kita.
-// Fungsi ini akan berjalan di server (Vercel) setiap kali ada
-// request POST ke /api/snippets
+// Fungsi ini berjalan di server
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-
-    // Data yang kita terima dari form
     const { title, language, code } = data;
 
     // Validasi sederhana
@@ -20,20 +17,25 @@ export async function POST(request: Request) {
     }
 
     // ===============================================
-    // == DI SINILAH KITA AKAN MENYIMPAN KE DATABASE ==
+    // == INI BAGIAN PENTING: MENYIMPAN KE DATABASE ==
     // ===============================================
-    console.log('Menerima snippet baru:');
-    console.log('Judul:', title);
-    console.log('Bahasa:', language);
 
-    // UNTUK SEKARANG, kita hanya pura-pura menyimpannya
-    // dan mengembalikan data seolah-olah sukses.
-    const newSnippetId = Math.floor(Math.random() * 10000); // ID palsu
+    // $1, $2, $3 adalah 'placeholder' aman
+    const result = await sql`
+      INSERT INTO snippets (title, language, code)
+      VALUES (${title}, ${language}, ${code})
+      RETURNING id;
+    `;
 
-    // Ini adalah respons yang dikirim kembali ke form
+    // Ambil ID dari snippet yang baru saja kita buat
+    const newSnippetId = result.rows[0].id;
+
+    console.log('Snippet baru TERSIMPAN ke DB, ID:', newSnippetId);
+
+    // Kirim respons sukses kembali ke form
     return NextResponse.json(
       { 
-        message: 'Snippet berhasil diterima (tapi belum disimpan)',
+        message: 'Snippet berhasil disimpan ke database!',
         id: newSnippetId 
       },
       { status: 201 } // 201 = Created
